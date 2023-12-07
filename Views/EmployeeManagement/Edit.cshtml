@@ -36,6 +36,11 @@
                     <input asp-for="Age" type="number" class="form-control" value="@Model.Age">
                 </div>
 
+                <div class="mb-2">
+                    <label asp-for="imageFile" class="form-label">Profile Image</label>
+                    <input asp-for="imageFile" type="file" class="form-control" name="ImageFile" value="@Model.ProfileImage">
+                </div>
+
                 <button type="submit" class="btn btn-primary">Update</button>
             </form>
         </div>

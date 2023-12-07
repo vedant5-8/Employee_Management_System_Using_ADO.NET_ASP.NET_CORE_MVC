@@ -1,15 +1,15 @@
 ﻿@model Employee_Mnagement_System.Models.EmployeeModel;
 
 @{
-    ViewData["title"] = "Add New Employee";
+    ViewData["Title"] = "Add New Employee";
 }
 
-<h2>@ViewData["title"]</h2>
+<h2>@ViewData["Title"]</h2>
 
 <div class="row">
     <div class="col-6">
         <div class="shadow-sm p-2">
-            <form asp-action="Create">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
 
                 <div class="mb-2">
                     <label asp-for="FirstName" class="form-label">First Name</label>
@@ -37,7 +37,8 @@
                 </div>
 
                 <div class="mb-2">
-
+                    <label asp-for="imageFile" class="form-label">Profile Image</label>
+                    <input asp-for="imageFile" type="file" class="form-control" name="ImageFile">
                 </div>
 
                 <button type="submit" class="btn btn-primary">Submit</button>

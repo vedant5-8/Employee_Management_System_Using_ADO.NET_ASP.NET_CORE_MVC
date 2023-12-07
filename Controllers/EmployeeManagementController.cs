@@ -46,6 +46,41 @@ namespace Employee_Mnagement_System.Controllers
             return View(employeeList);
         }
 
+        public string UploadImage(IFormFile imageFile)
+        {
+            try
+            {
+                string uniqueFileName = null;
+
+                if (imageFile != null)
+                {
+                    string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+                    // Create the directory if it doesn't exist
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        imageFile.CopyTo(stream);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Image File is Null");
+                }
+                return uniqueFileName;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
+
         public IActionResult Create()
         {
             return View();
@@ -54,11 +89,12 @@ namespace Employee_Mnagement_System.Controllers
         [HttpPost]
         public IActionResult Create(EmployeeModel employee)
         {
-
-            const string Query = "Insert into employee (FirstName, LastName, EmailId, ContactNo, Age) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age);";
+            employee.ProfileImage = UploadImage(employee.imageFile);
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+                const string Query = "Insert into employee (FirstName, LastName, EmailId, ContactNo, Age, ProfileImage) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
+
                 using (MySqlCommand command = new MySqlCommand(Query, connection))
                 {
                     connection.Open();
@@ -68,6 +104,8 @@ namespace Employee_Mnagement_System.Controllers
                     command.Parameters.AddWithValue("@EmailId", employee.EmailId);
                     command.Parameters.AddWithValue("@ContactNo", employee.ContactNo);
                     command.Parameters.AddWithValue("@Age", employee.Age);
+                    command.Parameters.AddWithValue("@ProfileImage", employee.ProfileImage);
+
                     command.ExecuteNonQuery();
                 }
             }
@@ -104,6 +142,10 @@ namespace Employee_Mnagement_System.Controllers
                         employeeModel.ContactNo = reader["ContactNo"].ToString();
                         employeeModel.EmailId = reader["EmailId"].ToString();
                         employeeModel.Age = (int)reader["Age"];
+                        employeeModel.ProfileImage = reader["ProfileImage"].ToString();
+
+                        // Add the image file path to the model
+                        employeeModel.ProfileImage = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", employeeModel.ProfileImage);
 
                     }
                 }
@@ -116,10 +158,29 @@ namespace Employee_Mnagement_System.Controllers
         public IActionResult Edit(int id, EmployeeModel employee)
         {
 
-            string queryString = "UPDATE employee SET FirstName = @FirstName, LastName = @LastName, ContactNo = @ContactNo, EmailId = @EmailId, Age = @Age WHERE Id = @Id;";
+            string existingImage = null;
+
+            // fetch the old image name
+            using (MySqlConnection connection1 = new MySqlConnection(connectionString))
+            {
+                const string queryString1 = "SELECT ProfileImage FROM employee WHERE Id = @Id";
+
+                using (MySqlCommand command = new MySqlCommand(queryString1, connection1))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+                    connection1.Open();
+                    existingImage = command.ExecuteScalar() as string;
+                }
+            }
+
+            // Upload the new image and get the new image name
+            string newImage = UploadImage(employee.imageFile);
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+
+                string queryString = "UPDATE employee SET FirstName = @FirstName, LastName = @LastName, ContactNo = @ContactNo, EmailId = @EmailId, Age = @Age, ProfileImage = @ProfileImage WHERE Id = @Id;";
+
                 using (MySqlCommand command = new MySqlCommand(queryString, connection))
                 {
 
@@ -129,11 +190,23 @@ namespace Employee_Mnagement_System.Controllers
                     command.Parameters.AddWithValue("@ContactNo", employee.ContactNo);
                     command.Parameters.AddWithValue("@EmailId", employee.EmailId);
                     command.Parameters.AddWithValue("@Age", employee.Age);
+                    command.Parameters.AddWithValue("@ProfileImage", employee.ProfileImage);
 
                     connection.Open();
 
                     command.ExecuteNonQuery();
 
+                }
+            }
+
+            // Delete the old image file if it exists and is different from the new image
+
+            if (existingImage != null && existingImage != newImage)
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", existingImage);
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
                 }
             }
 
@@ -159,10 +232,16 @@ namespace Employee_Mnagement_System.Controllers
             return RedirectToAction("Index");
         }
 
+        public IActionResult Search()
+        {
+            return View();
+        }
+
+        [HttpPost]
         public IActionResult Search(string Search)
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            string Query = "SELECT * FROM employee WHERE Id LIKE @search OR FirstName LIKE @search OR LastName LIKE @search OR EmailId LIKE @search OR ContactNo LIKE @search OR Age LIKE @search;";
+            string Query = "SELECT * FROM employee WHERE Id = @search OR FirstName LIKE @search OR LastName LIKE @search OR EmailId LIKE @search OR ContactNo = @search OR Age LIKE @search;";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
@@ -188,7 +267,7 @@ namespace Employee_Mnagement_System.Controllers
                     }
                 }
             }
-            return View("Search", employeeList);
+            return View("Index", employeeList);
         }
 
     }

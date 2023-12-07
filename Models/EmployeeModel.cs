@@ -17,6 +17,8 @@ namespace Employee_Mnagement_System.Models
 
         public int Age { get; set; }
 
-        public byte[] ProfileImage { get; set; }
+        public string ProfileImage { get; set; }
+        public IFormFile imageFile { get; set; }
+
     }
 }

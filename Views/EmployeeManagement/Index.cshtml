@@ -6,9 +6,12 @@
 
 <h2>@ViewData["title"]</h2>
 
-<p>
-    <a asp-action="Create" class="btn btn-success">Add</a>
-</p>
+<div class="col-6">
+    <form class="d-flex" method="post" action="/EmployeeManagement/Search">
+        <input class="form-control me-2" type="search" placeholder="Search" name="Search">
+        <button class="btn btn-outline-success" type="submit">Search</button>
+    </form>
+</div>
 
 <table class="table">
     <thead>
