@@ -32,53 +32,19 @@ namespace Employee_Mnagement_System.Controllers
                     {
                         EmployeeModel employee = new EmployeeModel();
 
-                        employee.Id = (int) reader["Id"];
-                        employee.FirstName = reader["FirstName"].ToString();
-                        employee.LastName = reader["LastName"].ToString();
-                        employee.EmailId = reader["EmailId"].ToString();
-                        employee.ContactNo = reader["ContactNo"].ToString();
-                        employee.Age = (int) reader["Age"];
+                        employee.Id = (int) reader["emp_id"];
+                        employee.FirstName = reader["first_name"].ToString();
+                        employee.LastName = reader["last_name"].ToString();
+                        employee.EmailId = reader["email_id"].ToString();
+                        employee.ContactNo = reader["contact_no"].ToString();
+                        employee.Age = (int) reader["emp_age"];
+                        employee.ProfileImage = reader["profile_image"].ToString();
 
                         employeeList.Add(employee);
                     }
                 }
             }
             return View(employeeList);
-        }
-
-        public string UploadImage(IFormFile imageFile)
-        {
-            try
-            {
-                string uniqueFileName = null;
-
-                if (imageFile != null)
-                {
-                    string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
-
-                    // Create the directory if it doesn't exist
-                    if (!Directory.Exists(uploadFolder))
-                    {
-                        Directory.CreateDirectory(uploadFolder);
-                    }
-
-                    uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
-                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        imageFile.CopyTo(stream);
-                    }
-                }
-                else
-                {
-                    Console.WriteLine("Image File is Null");
-                }
-                return uniqueFileName;
-            }
-            catch (Exception ex)
-            {
-                return ex.Message;
-            }
         }
 
         public IActionResult Create()
@@ -93,7 +59,7 @@ namespace Employee_Mnagement_System.Controllers
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                const string Query = "Insert into employee (FirstName, LastName, EmailId, ContactNo, Age, ProfileImage) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
+                const string Query = "Insert into employee (first_name, last_name, email_id, contact_no, emp_age, profile_image) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
 
                 using (MySqlCommand command = new MySqlCommand(Query, connection))
                 {
@@ -115,10 +81,9 @@ namespace Employee_Mnagement_System.Controllers
 
         public IActionResult Edit(int? id)
         {
-
             EmployeeModel employeeModel = null;
 
-            const string queryString = "SELECT * FROM employee WHERE Id = @Id";
+            const string queryString = "SELECT * FROM employee WHERE emp_id = @Id";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
@@ -136,16 +101,13 @@ namespace Employee_Mnagement_System.Controllers
 
                         // Id, FirstName, LastName, ContactNo, Age
 
-                        employeeModel.Id = (int)reader["Id"];
-                        employeeModel.FirstName = reader["FirstName"].ToString();
-                        employeeModel.LastName = reader["LastName"].ToString();
-                        employeeModel.ContactNo = reader["ContactNo"].ToString();
-                        employeeModel.EmailId = reader["EmailId"].ToString();
-                        employeeModel.Age = (int)reader["Age"];
-                        employeeModel.ProfileImage = reader["ProfileImage"].ToString();
-
-                        // Add the image file path to the model
-                        employeeModel.ProfileImage = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", employeeModel.ProfileImage);
+                        employeeModel.Id = (int)reader["emp_id"];
+                        employeeModel.FirstName = reader["first_name"].ToString();
+                        employeeModel.LastName = reader["last_name"].ToString();
+                        employeeModel.EmailId = reader["email_id"].ToString();
+                        employeeModel.ContactNo = reader["contact_no"].ToString();
+                        employeeModel.Age = (int)reader["emp_age"];
+                        employeeModel.ProfileImage = reader["profile_image"].ToString();
 
                     }
                 }
@@ -157,57 +119,76 @@ namespace Employee_Mnagement_System.Controllers
         [HttpPost]
         public IActionResult Edit(int id, EmployeeModel employee)
         {
-
-            string existingImage = null;
-
-            // fetch the old image name
-            using (MySqlConnection connection1 = new MySqlConnection(connectionString))
+            try
             {
-                const string queryString1 = "SELECT ProfileImage FROM employee WHERE Id = @Id";
+                // get existing profile image from database
+                string existingImage = null;
 
-                using (MySqlCommand command = new MySqlCommand(queryString1, connection1))
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    command.Parameters.AddWithValue("@Id", id);
-                    connection1.Open();
-                    existingImage = command.ExecuteScalar() as string;
+                    string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
+
+                    using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                    {
+                        command.Parameters.AddWithValue("@Id", id);
+
+                        connection.Open();
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                existingImage = reader["profile_image"].ToString();
+                            }
+                        }
+                    }
                 }
+
+                // If a new image file is uploaded, update the profile image
+                if (employee.imageFile != null)
+                {
+                    // Delete the old image file if it exists
+
+                    if (!string.IsNullOrEmpty(existingImage))
+                    {
+                        string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", existingImage);
+
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    employee.ProfileImage = UploadImage(employee.imageFile);
+
+                }
+
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    string queryString = "UPDATE employee SET first_name = @FirstName, last_name = @LastName, contact_no = @ContactNo, email_id = @EmailId, emp_age = @Age, profile_image = @ProfileImage WHERE emp_id = @Id;";
+
+                    using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                    {
+
+                        command.Parameters.AddWithValue("@Id", id);
+                        command.Parameters.AddWithValue("@FirstName", employee.FirstName);
+                        command.Parameters.AddWithValue("@LastName", employee.LastName);
+                        command.Parameters.AddWithValue("@ContactNo", employee.ContactNo);
+                        command.Parameters.AddWithValue("@EmailId", employee.EmailId);
+                        command.Parameters.AddWithValue("@Age", employee.Age);
+                        command.Parameters.AddWithValue("@ProfileImage", employee.ProfileImage);
+
+                        connection.Open();
+
+                        command.ExecuteNonQuery();
+
+                    }
+                }
+
             }
-
-            // Upload the new image and get the new image name
-            string newImage = UploadImage(employee.imageFile);
-
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            catch (Exception ex)
             {
-
-                string queryString = "UPDATE employee SET FirstName = @FirstName, LastName = @LastName, ContactNo = @ContactNo, EmailId = @EmailId, Age = @Age, ProfileImage = @ProfileImage WHERE Id = @Id;";
-
-                using (MySqlCommand command = new MySqlCommand(queryString, connection))
-                {
-
-                    command.Parameters.AddWithValue("@Id", id);
-                    command.Parameters.AddWithValue("@FirstName", employee.FirstName);
-                    command.Parameters.AddWithValue("@LastName", employee.LastName);
-                    command.Parameters.AddWithValue("@ContactNo", employee.ContactNo);
-                    command.Parameters.AddWithValue("@EmailId", employee.EmailId);
-                    command.Parameters.AddWithValue("@Age", employee.Age);
-                    command.Parameters.AddWithValue("@ProfileImage", employee.ProfileImage);
-
-                    connection.Open();
-
-                    command.ExecuteNonQuery();
-
-                }
-            }
-
-            // Delete the old image file if it exists and is different from the new image
-
-            if (existingImage != null && existingImage != newImage)
-            {
-                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", existingImage);
-                if (System.IO.File.Exists(oldImagePath))
-                {
-                    System.IO.File.Delete(oldImagePath);
-                }
+                Console.WriteLine(ex.Message);
             }
 
             return RedirectToAction("Index");
@@ -215,7 +196,7 @@ namespace Employee_Mnagement_System.Controllers
 
         public IActionResult Delete(int? id)
         {
-            string queryString = "DELETE FROM employee WHERE Id = @Id";
+            string queryString = "DELETE FROM employee WHERE emp_id = @Id";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
@@ -241,7 +222,7 @@ namespace Employee_Mnagement_System.Controllers
         public IActionResult Search(string Search)
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            string Query = "SELECT * FROM employee WHERE Id = @search OR FirstName LIKE @search OR LastName LIKE @search OR EmailId LIKE @search OR ContactNo = @search OR Age LIKE @search;";
+            string Query = "SELECT * FROM employee WHERE emp_id = @search OR first_name LIKE @search OR last_name LIKE @search OR email_id LIKE @search OR contact_no = @search OR emp_age LIKE @search;";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
@@ -256,18 +237,63 @@ namespace Employee_Mnagement_System.Controllers
                     {
                         EmployeeModel employee = new EmployeeModel();
 
-                        employee.Id = (int)reader["Id"];
-                        employee.FirstName = reader["FirstName"].ToString();
-                        employee.LastName = reader["LastName"].ToString();
-                        employee.EmailId = reader["EmailId"].ToString();
-                        employee.ContactNo = reader["ContactNo"].ToString();
-                        employee.Age = (int)reader["Age"];
+                        employee.Id = (int)reader["emp_id"];
+                        employee.FirstName = reader["first_name"].ToString();
+                        employee.LastName = reader["last_name"].ToString();
+                        employee.EmailId = reader["email_id"].ToString();
+                        employee.ContactNo = reader["contact_no"].ToString();
+                        employee.Age = (int)reader["emp_age"];
+
+
 
                         employeeList.Add(employee);
                     }
                 }
             }
             return View("Index", employeeList);
+        }
+
+        // Upload Image to file system
+        private string UploadImage(IFormFile imageFile)
+        {
+            try
+            {
+                string uniqueFileName = null;
+
+                if (imageFile != null)
+                {
+                    // creating a string uploadFolder that contains the path to the images folder inside the wwwroot directory of your application
+                    string uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images");
+
+                    // Create the directory if it doesn't exist
+                    if (!Directory.Exists(uploadFolder))
+                    {
+                        Directory.CreateDirectory(uploadFolder);
+                    }
+
+                    // Rename upload image name to some unique file name
+                    uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
+
+                    // creating a string "filePath" that contains the full path to where the file will be saved.
+                    string filePath = Path.Combine(uploadFolder, uniqueFileName);
+
+                    // creating a new FileStream object that represents the file at filePath
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        // copying the contents of imageFile to the stream
+                        imageFile.CopyTo(stream);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Image File is Null");
+                }
+                return uniqueFileName;
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
         }
 
     }

@@ -9,7 +9,7 @@
 <div class="row">
     <div class="col-6">
         <div class="shadow-sm p-2">
-            <form asp-action="Edit">
+            <form asp-action="Edit" enctype="multipart/form-data">
 
                 <div class="mb-2">
                     <label asp-for="FirstName" class="form-label">First Name</label>
@@ -38,7 +38,11 @@
 
                 <div class="mb-2">
                     <label asp-for="imageFile" class="form-label">Profile Image</label>
-                    <input asp-for="imageFile" type="file" class="form-control" name="ImageFile" value="@Model.ProfileImage">
+                    <input asp-for="imageFile" type="file" class="form-control">
+                </div>
+
+                <div class="mb-2">
+                    <img class="rounded-circle" src="~/images/@Model.ProfileImage" width="30px" />
                 </div>
 
                 <button type="submit" class="btn btn-primary">Update</button>
