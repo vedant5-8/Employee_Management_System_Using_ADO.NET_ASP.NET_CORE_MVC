@@ -6,43 +6,153 @@
 
 <h2>@ViewData["title"]</h2>
 
-<div class="col-6">
-    <form class="d-flex" method="post" action="/EmployeeManagement/Search">
-        <input class="form-control me-2" type="search" placeholder="Search" name="Search">
-        <button class="btn btn-outline-success" type="submit">Search</button>
-    </form>
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#employeeModal">Add New Employee</button>
+
+<!-- Modal -->
+<div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="employeeModalLabel">Add New Employee</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <form id="employeeForm">
+
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-6">
+                            <label for="firstName" class="form-label">First Name</label>
+                            <input id="FirstName" name="FirstName" type="text" class="form-control">
+                        </div>
+                        <div class="col-6">
+                            <label for="lastName" class="form-label">Last Name</label>
+                            <input id="lastName" name="LastName" type="text" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="emailId" class="form-label">Email</label>
+                            <input id="emailId" name="EmailId" type="text" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <label for="ContactNo" class="form-label">Contact No.</label>
+                            <input id="ContactNo" name="ContactNo" type="text" class="form-control">
+                        </div>
+                        <div class="col-4">
+                            <label for="Age" class="form-label">Contact No.</label>
+                            <input id="Age" name="Age" type="text" class="form-control">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-8">
+                            <label for="imageFile" class="form-label">Profile Image</label>
+                            <input id="imageFile" name="ProfileImage" type="file" class="form-control" name="ImageFile">
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-success" onclick="saveEmployee()">Save changes</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
 </div>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th>Profile</th>
-            <th>Employee Id</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Contact No</th>
-            <th>Email Id</th>
-            <th>Age</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
+<hr/>
+
+@if (Model.Any())
+{
+    <table class="table" id="emp-table">
+        <thead>
             <tr>
-                <td><img class="rounded-circle" src="~/images/@item.ProfileImage" width="25px"></td>
-                <td>@Html.DisplayFor(modelItem => item.Id)</td>
-                <td>@Html.DisplayFor(modelItem => item.FirstName)</td>
-                <td>@Html.DisplayFor(modelItem => item.LastName)</td>
-                <td>@Html.DisplayFor(modelItem => item.ContactNo)</td>
-                <td>@Html.DisplayFor(modelItem => item.EmailId)</td>
-                <td>@Html.DisplayFor(modelItem => item.Age)</td>
-                <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-                </td>
+                <th>Profile</th>
+                <th>Employee Id</th>
+                <th>First Name</th>
+                <th>Last Name</th>
+                <th>Contact No</th>
+                <th>Email Id</th>
+                <th>Age</th>
+                <th>Actions</th>
             </tr>
-        }
-    </tbody>
-</table>
+        </thead>
+        <tbody>
+            @* Use AJAX for displaying data *@
+        </tbody>
+    </table>
+}
+else
+{
+    <h2>No Data Available</h2>
+}
+
+<script>
+    $(document).ready(function () {
+        debugger;
+
+        $.ajax({
+            type: "Get",
+            url: "/EmployeeManagement/EmployeesList",
+            success: function (data) {
+                $('#emp-table').DataTable({
+                    data: data,
+                    columns: [
+                        {
+                            data: 'profileImage',
+                            render: function (data, type, row) {
+                                return '<img src="/images/' + data + '" width="50" height="50" alt="Image" />';
+                            }
+                        },
+                        { data: 'id' },
+                        { data: 'firstName' },
+                        { data: 'lastName' },
+                        { data: 'emailId' },
+                        { data: 'contactNo' },
+                        { data: 'age' },
+                        {
+                            data: null,
+                            render: function (data, type, row) {
+                                // return '<a href="/EmployeeManagement/Edit/' + row.id + '">Edit</a> | <a href="/EmployeeManagement/Delete/' + row.id + '">Delete</a>';
+                                return '<button type="button" onclick=edit(' + row.id + ') class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#employeeModal">Edit</button> | <button type="button" onclick=delete(' + row.id + ') class="btn btn-primary">Delete</button>';
+                            }
+                        }
+                    ]
+                });
+            }
+        });
+    });
+
+    // Function for save anew employee
+
+    function saveEmployee() {
+
+        var formData = new FormData($('#employeeForm')[0]);
+
+        $.ajax({
+            type: "POST",
+            url: "/EmployeeManagement/Create",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                console.log("Employee saved successfully!");
+                $('#employeeModal').modal('hide');
+            },
+            error: function (error) {
+                console.error("Error saving employee:", error);
+            }
+        });
+    }
+
+</script>
+
+

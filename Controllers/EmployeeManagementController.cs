@@ -47,6 +47,39 @@ namespace Employee_Mnagement_System.Controllers
             return View(employeeList);
         }
 
+        // List of all employees with JSON (AJAX Function)
+        public IActionResult EmployeesList()
+        {
+            List<EmployeeModel> employeeList = new List<EmployeeModel>();
+            const string Query = "select * from employee;";
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                using (MySqlCommand command = new MySqlCommand(Query, connection))
+                {
+                    connection.Open();
+
+                    MySqlDataReader reader = command.ExecuteReader();
+
+                    while (reader.Read())
+                    {
+                        EmployeeModel employee = new EmployeeModel();
+
+                        employee.Id = (int)reader["emp_id"];
+                        employee.FirstName = reader["first_name"].ToString();
+                        employee.LastName = reader["last_name"].ToString();
+                        employee.EmailId = reader["email_id"].ToString();
+                        employee.ContactNo = reader["contact_no"].ToString();
+                        employee.Age = (int)reader["emp_age"];
+                        employee.ProfileImage = reader["profile_image"].ToString();
+
+                        employeeList.Add(employee);
+                    }
+                }
+            }
+            return Json(employeeList);
+        }
+
         public IActionResult Create()
         {
             return View();
@@ -196,10 +229,46 @@ namespace Employee_Mnagement_System.Controllers
 
         public IActionResult Delete(int? id)
         {
-            string queryString = "DELETE FROM employee WHERE emp_id = @Id";
+
+            // get existing profile image from database
+            string existingImage = null;
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
+                string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
+
+                using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                {
+                    command.Parameters.AddWithValue("@Id", id);
+
+                    connection.Open();
+
+                    using (var reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            existingImage = reader["profile_image"].ToString();
+                        }
+                    }
+                }
+            }
+
+            // Delete the old image file if it exists
+
+            if (!string.IsNullOrEmpty(existingImage))
+            {
+                string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", existingImage);
+
+                if (System.IO.File.Exists(oldImagePath))
+                {
+                    System.IO.File.Delete(oldImagePath);
+                }
+            }
+
+            using (MySqlConnection connection = new MySqlConnection(connectionString))
+            {
+                string queryString = "DELETE FROM employee WHERE emp_id = @Id";
+
                 using (MySqlCommand command = new MySqlCommand(queryString, connection))
                 {
                     command.Parameters.AddWithValue("@Id", id);
@@ -243,8 +312,6 @@ namespace Employee_Mnagement_System.Controllers
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
                         employee.Age = (int)reader["emp_age"];
-
-
 
                         employeeList.Add(employee);
                     }
