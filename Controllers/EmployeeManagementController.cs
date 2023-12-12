@@ -1,6 +1,7 @@
 ﻿using Employee_Mnagement_System.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace Employee_Mnagement_System.Controllers
 {
@@ -18,12 +19,16 @@ namespace Employee_Mnagement_System.Controllers
         public IActionResult Index()
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            const string Query = "select * from employee;";
+            // const string Query = "select * from employee;";
+
+            const string StoredProcedure = "GetEmployeeData";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                using (MySqlCommand command = new MySqlCommand(Query, connection))
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     connection.Open();
 
                     MySqlDataReader reader = command.ExecuteReader();
@@ -51,12 +56,16 @@ namespace Employee_Mnagement_System.Controllers
         public IActionResult EmployeesList()
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            const string Query = "select * from employee;";
+            // const string Query = "select * from employee;";
+
+            const string StoredProcedure = "GetEmployeeData";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                using (MySqlCommand command = new MySqlCommand(Query, connection))
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     connection.Open();
 
                     MySqlDataReader reader = command.ExecuteReader();
@@ -92,10 +101,14 @@ namespace Employee_Mnagement_System.Controllers
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                const string Query = "Insert into employee (first_name, last_name, email_id, contact_no, emp_age, profile_image) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
+                // const string Query = "Insert into employee (first_name, last_name, email_id, contact_no, emp_age, profile_image) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
 
-                using (MySqlCommand command = new MySqlCommand(Query, connection))
+                const string StoredProcedure = "InsertEmployee";
+
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     connection.Open();
 
                     command.Parameters.AddWithValue("@FirstName", employee.FirstName);
@@ -116,12 +129,16 @@ namespace Employee_Mnagement_System.Controllers
         {
             EmployeeModel employeeModel = null;
 
-            const string queryString = "SELECT * FROM employee WHERE emp_id = @Id";
+            // const string queryString = "SELECT * FROM employee WHERE emp_id = @Id";
+
+            const string StoredProcedure = "GetEmployeeById";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     command.Parameters.AddWithValue("@Id", id);
 
                     connection.Open();
@@ -159,10 +176,14 @@ namespace Employee_Mnagement_System.Controllers
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
+                    // string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
 
-                    using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                    string StoredProcedure = "GetProfileImageById";
+
+                    using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                     {
+                        command.CommandType = CommandType.StoredProcedure;
+
                         command.Parameters.AddWithValue("@Id", id);
 
                         connection.Open();
@@ -198,10 +219,12 @@ namespace Employee_Mnagement_System.Controllers
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    string queryString = "UPDATE employee SET first_name = @FirstName, last_name = @LastName, contact_no = @ContactNo, email_id = @EmailId, emp_age = @Age, profile_image = @ProfileImage WHERE emp_id = @Id;";
+                    // string queryString = "UPDATE employee SET first_name = @FirstName, last_name = @LastName, contact_no = @ContactNo, email_id = @EmailId, emp_age = @Age, profile_image = @ProfileImage WHERE emp_id = @Id;";
+                    string StoredProcedure = "UpdateEmployee";
 
-                    using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                    using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                     {
+                        command.CommandType = CommandType.StoredProcedure;
 
                         command.Parameters.AddWithValue("@Id", id);
                         command.Parameters.AddWithValue("@FirstName", employee.FirstName);
@@ -234,10 +257,14 @@ namespace Employee_Mnagement_System.Controllers
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
+                // string queryString = "SELECT profile_image FROM employee WHERE emp_id = @Id;";
 
-                using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                string StoredProcedure = "GetProfileImageById";
+
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     command.Parameters.AddWithValue("@Id", id);
 
                     connection.Open();
@@ -266,10 +293,14 @@ namespace Employee_Mnagement_System.Controllers
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                string queryString = "DELETE FROM employee WHERE emp_id = @Id";
+                // string queryString = "DELETE FROM employee WHERE emp_id = @Id";
 
-                using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                string StoredProcedure = "DeleteEmployee";
+
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     command.Parameters.AddWithValue("@Id", id);
 
                     connection.Open();
@@ -290,12 +321,15 @@ namespace Employee_Mnagement_System.Controllers
         public IActionResult Search(string Search)
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            string Query = "SELECT * FROM employee WHERE emp_id = @search OR first_name LIKE @search OR last_name LIKE @search OR email_id LIKE @search OR contact_no = @search OR emp_age LIKE @search;";
+            // string Query = "SELECT * FROM employee WHERE emp_id = @search OR first_name LIKE @search OR last_name LIKE @search OR email_id LIKE @search OR contact_no = @search OR emp_age LIKE @search;";
+            string StoredProcedure = "SearchEmployee";
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                using (MySqlCommand command = new MySqlCommand(Query, connection))
+                using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                 {
+                    command.CommandType = CommandType.StoredProcedure;
+
                     command.Parameters.AddWithValue("@search", "%" + Search + "%");
                     connection.Open();
 

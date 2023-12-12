@@ -1,6 +1,7 @@
 ﻿using Employee_Mnagement_System.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using System.Data;
 
 namespace Employee_Mnagement_System.Controllers
 {
@@ -165,10 +166,12 @@ namespace Employee_Mnagement_System.Controllers
 
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
-                    string queryString = "UPDATE employee SET first_name = @FirstName, last_name = @LastName, contact_no = @ContactNo, email_id = @EmailId, emp_age = @Age, profile_image = @ProfileImage WHERE emp_id = @Id;";
+                    // string queryString = "UPDATE employee SET first_name = @FirstName, last_name = @LastName, contact_no = @ContactNo, email_id = @EmailId, emp_age = @Age, profile_image = @ProfileImage WHERE emp_id = @Id;";
+                    string StoredProcedure = "UpdateEmployee";
 
-                    using (MySqlCommand command = new MySqlCommand(queryString, connection))
+                    using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
                     {
+                        command.CommandType = CommandType.StoredProcedure;
 
                         command.Parameters.AddWithValue("@Id", id);
                         command.Parameters.AddWithValue("@FirstName", employee.FirstName);
