@@ -4,51 +4,18 @@ using MySql.Data.MySqlClient;
 
 namespace Employee_Mnagement_System.Controllers
 {
-    public class EmployeeManagementController : Controller
+    public class EmployeeController : Controller
     {
         private readonly IConfiguration _configuration;
         private string connectionString;
 
-        public EmployeeManagementController(IConfiguration configuration)
+        public EmployeeController(IConfiguration configuration)
         {
             _configuration = configuration;
             connectionString = _configuration.GetConnectionString("DefaultConnection");
         }
 
-        public IActionResult Index()
-        {
-            List<EmployeeModel> employeeList = new List<EmployeeModel>();
-            const string Query = "select * from employee;";
-
-            using (MySqlConnection connection = new MySqlConnection(connectionString))
-            {
-                using (MySqlCommand command = new MySqlCommand(Query, connection))
-                {
-                    connection.Open();
-
-                    MySqlDataReader reader = command.ExecuteReader();
-
-                    while(reader.Read())
-                    {
-                        EmployeeModel employee = new EmployeeModel();
-
-                        employee.Id = (int) reader["emp_id"];
-                        employee.FirstName = reader["first_name"].ToString();
-                        employee.LastName = reader["last_name"].ToString();
-                        employee.EmailId = reader["email_id"].ToString();
-                        employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int) reader["emp_age"];
-                        employee.ProfileImage = reader["profile_image"].ToString();
-
-                        employeeList.Add(employee);
-                    }
-                }
-            }
-            return View(employeeList);
-        }
-
-        // List of all employees with JSON (AJAX Function)
-        public IActionResult EmployeesList()
+        public IActionResult ViewEmployees()
         {
             List<EmployeeModel> employeeList = new List<EmployeeModel>();
             const string Query = "select * from employee;";
@@ -77,16 +44,16 @@ namespace Employee_Mnagement_System.Controllers
                     }
                 }
             }
-            return Json(employeeList);
+            return View(employeeList);
         }
 
-        public IActionResult Create()
+        public IActionResult AddEmployee()
         {
             return View();
         }
 
         [HttpPost]
-        public IActionResult Create(EmployeeModel employee)
+        public IActionResult AddEmployee(EmployeeModel employee)
         {
             employee.ProfileImage = UploadImage(employee.imageFile);
 
@@ -109,10 +76,10 @@ namespace Employee_Mnagement_System.Controllers
                 }
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("ViewEmployees");
         }
 
-        public IActionResult Edit(int? id)
+        public IActionResult UpdateEmployee(int? id)
         {
             EmployeeModel employeeModel = null;
 
@@ -146,11 +113,11 @@ namespace Employee_Mnagement_System.Controllers
                 }
             }
 
-            return Json(employeeModel);
+            return View(employeeModel);
         }
 
         [HttpPost]
-        public IActionResult Edit(int id, EmployeeModel employee)
+        public IActionResult UpdateEmployee(int id, EmployeeModel employee)
         {
             try
             {
@@ -223,10 +190,10 @@ namespace Employee_Mnagement_System.Controllers
             {
                 Console.WriteLine(ex.Message);
             }
-            return RedirectToAction("Index");
+            return RedirectToAction("ViewEmployees");
         }
 
-        public IActionResult Delete(int? id)
+        public IActionResult DeleteEmployee(int? id)
         {
 
             // get existing profile image from database
@@ -278,7 +245,7 @@ namespace Employee_Mnagement_System.Controllers
                 }
             }
 
-            return RedirectToAction("Index");
+            return RedirectToAction("ViewEmployees");
         }
 
         public IActionResult Search()
@@ -316,7 +283,7 @@ namespace Employee_Mnagement_System.Controllers
                     }
                 }
             }
-            return View("Index", employeeList);
+            return View("ViewEmployees", employeeList);
         }
 
         // Upload Image to file system
@@ -361,6 +328,5 @@ namespace Employee_Mnagement_System.Controllers
                 return ex.Message;
             }
         }
-
     }
 }
