@@ -51,7 +51,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-8">
+                        <div class="col-12">
                             <label for="imageFile" class="form-label">Profile Image</label>
                             <input id="imageFile" name="imageFile" type="file" class="form-control">
                         </div>
@@ -80,6 +80,9 @@
             <form id="updateForm">
 
                 <div class="modal-body">
+
+                    <input id="empId_u" name="Id" type="number" class="form-control" autocomplete="off" hidden>
+
                     <div class="row">
                         <div class="col-6">
                             <label for="firstName_u" class="form-label">First Name</label>
@@ -110,7 +113,7 @@
                     </div>
 
                     <div class="row">
-                        <div class="col-8">
+                        <div class="col-12">
                             <label for="imageFile_u" class="form-label">Profile Image</label>
                             <input id="imageFile_u" name="imageFile" type="file" class="form-control">
                         </div>
@@ -181,7 +184,7 @@ else
                             data: null,
                             render: function (data, type, row) {
                                 // return '<a href="/EmployeeManagement/Edit/' + row.id + '">Edit</a> | <a href="/EmployeeManagement/Delete/' + row.id + '">Delete</a>';
-                                return '<button type="button" onclick=updateEmployee(' + row.id + ') class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateEmployeeModal">Edit</button> | <button type="button" onclick=deleteEmployee(' + row.id + ') class="btn btn-primary">Delete</button>';
+                                return '<button type="button" onclick=populateUpdateModal(' + row.id + ') class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#updateEmployeeModal">Edit</button> | <button type="button" onclick=deleteEmployee(' + row.id + ') class="btn btn-primary">Delete</button>';
                             }
                         }
                     ]
@@ -190,33 +193,59 @@ else
         });
     });
 
-    // function for save a new employee
-    function saveEmployee() {
+    //
 
-        var formData = new FormData($('#employeeForm')[0]);
+    function saveAndUpdateEmployee() {
+        var employeeData = {
+            Id: $('#empId_u').val(), // If the ID is present, it's an update; otherwise, it's a new employee
+            FirstName: $('#firstName_u').val(),
+            LastName: $('#lastName_u').val(),
+            EmailId: $('#emailId_u').val(),
+            ContactNo: $('#contactNo_u').val(),
+            Age: $('#age_u').val(),
+            ImageFile: $('#imageFile_u')[0].files[0]
+        };
+
+        var formData = new FormData();
+        for (var key in employeeData) {
+            formData.append(key, employeeData[key]);
+        }
+
+        var url = employeeData.Id ? "/EmployeeManagement/Edit/" : "/EmployeeManagement/Create";
 
         $.ajax({
             type: "POST",
-            url: "/EmployeeManagement/Create",
+            url: url,
             data: formData,
-            contenttype: false,
-            processdata: false,
+            contentType: false,
+            processData: false,
             success: function (data) {
-                alert("Employee Saved Successfully!");
+                console.log("Employee saved successfully!");
+                $('#updateEmployeeModal').modal('hide');
                 $('#saveEmployeeModal').modal('hide');
                 location.reload();
             },
             error: function (error) {
-                console.error("Error Saving Employee:", error);
+                console.error("Error saving/updating employee:", error);
             }
         });
     }
 
     // Function for save anew employee
-
     function saveEmployee() {
+        var employeeData = {
+            FirstName: $('#firstName').val(),
+            LastName: $('#lastName').val(),
+            EmailId: $('#emailId').val(),
+            ContactNo: $('#contactNo').val(),
+            Age: $('#age').val(),
+            ImageFile: $('#imageFile')[0].files[0]  // Assuming imageFile is a file input
+        };
 
-        var formData = new FormData($('#employeeForm')[0]);
+        var formData = new FormData();
+        for (var key in employeeData) {
+            formData.append(key, employeeData[key]);
+        }
 
         $.ajax({
             type: "POST",
@@ -226,12 +255,70 @@ else
             processData: false,
             success: function (data) {
                 console.log("Employee saved successfully!");
-                $('#employeeModal').modal('hide');
+                $('#saveEmployeeModal').modal('hide');
                 location.reload();
             },
             error: function (error) {
                 console.error("Error saving employee:", error);
             }
+        });
+    }
+
+    // Function for update employee
+
+    // Function to populate form fields by ID
+    function populateUpdateModal(employeeId) {
+        debugger;
+        $.ajax({
+            type: "GET",
+            url: "/EmployeeManagement/populateEditData/" + employeeId, // Update URL based on your routing
+            success: function (employee) {
+
+                // Populate form fields with employee details
+                $('#empId_u').val(employee.id);
+                $('#firstName_u').val(employee.firstName);
+                $('#lastName_u').val(employee.lastName);
+                $('#emailId_u').val(employee.emailId);
+                $('#contactNo_u').val(employee.contactNo);
+                $('#age_u').val(employee.age);
+
+                // $('#imageFile').val(employee.profileImage);
+            },
+            error: function (error) {
+                console.error("Error fetching employee details:", error);
+            }
+        });
+
+    }
+
+    function updateEmployee() {
+        // Collect form field values into an object
+        var employeeData = {
+            Id: $('#empId_u').val(),
+            FirstName: $('#firstName_u').val(),
+            LastName: $('#lastName_u').val(),
+            EmailId: $('#emailId_u').val(),
+            ContactNo: $('#contactNo_u').val(),
+            Age: $('#age_u').val(),
+
+        };
+
+        debugger;
+
+        $.ajax({
+            type: "POST",
+            url: "/EmployeeManagement/Edit/",
+            data: JSON.stringify(employeeData),
+            contentType: "application/json",
+            dataType: "json",
+            success: function (data) {
+                alert("Employee updated successfully!");
+                $('#updateEmployeeModal').modal('hide');
+                location.reload();
+            },
+            error: function (error) {
+                console.error("Error updating employee:", error);
+            },
         });
     }
 

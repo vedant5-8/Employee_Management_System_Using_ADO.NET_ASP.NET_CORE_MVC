@@ -125,7 +125,7 @@ namespace Employee_Mnagement_System.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult Edit(int? id)
+        public IActionResult populateEditData(int? id)
         {
             EmployeeModel employeeModel = null;
 
@@ -166,8 +166,9 @@ namespace Employee_Mnagement_System.Controllers
             return Json(employeeModel);
         }
 
+        /*
         [HttpPost]
-        public IActionResult Edit(int id, EmployeeModel employee)
+        public IActionResult Edit(EmployeeModel employee)
         {
             try
             {
@@ -247,6 +248,44 @@ namespace Employee_Mnagement_System.Controllers
                 Console.WriteLine(ex.Message);
             }
             return RedirectToAction("Index");
+        }
+        */
+
+        [HttpPost]
+        public IActionResult Edit([FromBody] EmployeeModel employee)
+        {
+
+            try
+            {
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    string StoredProcedure = "UpdateEmployee";
+
+                    using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+
+                        command.Parameters.AddWithValue("@Id", employee.Id);
+                        command.Parameters.AddWithValue("@FirstName", employee.FirstName);
+                        command.Parameters.AddWithValue("@LastName", employee.LastName);
+                        command.Parameters.AddWithValue("@ContactNo", employee.ContactNo);
+                        command.Parameters.AddWithValue("@EmailId", employee.EmailId);
+                        command.Parameters.AddWithValue("@Age", employee.Age);
+                        command.Parameters.AddWithValue("@ProfileImage", employee.ProfileImage);
+
+                        connection.Open();
+
+                        command.ExecuteNonQuery();
+
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+            return Json("Index");
         }
 
         public IActionResult Delete(int? id)
