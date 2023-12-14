@@ -258,8 +258,14 @@ namespace Employee_Mnagement_System.Controllers
         */
 
         [HttpPost]
-        public IActionResult Edit([FromBody] EmployeeModel employee)
+        public IActionResult Edit(string model, IFormFile file)
         {
+
+            EmployeeModel employee = JsonSerializer.Deserialize<EmployeeModel>(model)!;
+
+            employee.imageFile = file;
+
+            employee.ProfileImage = UploadImage(employee.imageFile);
 
             try
             {

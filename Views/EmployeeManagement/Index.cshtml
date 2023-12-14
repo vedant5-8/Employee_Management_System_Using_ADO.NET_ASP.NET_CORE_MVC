@@ -298,13 +298,12 @@ else
         };
 
         var formData = new FormData();
-        for (var key in employeeData) {
-            formData.append(key, employeeData[key]);
-        }
+        formData.append("model", JSON.stringify(employeeData));
+        formData.append("file", $("#imageFile_u")[0].files[0]);
 
         // Add updated image file to formData
-        var updatedImageFile = $('#imageFile_u')[0].files[0];
-        formData.append("imageFile", updatedImageFile);
+        // var updatedImageFile = $('#imageFile_u')[0].files[0];
+        // formData.append("imageFile", updatedImageFile);
 
         $.ajax({
             type: "POST",
