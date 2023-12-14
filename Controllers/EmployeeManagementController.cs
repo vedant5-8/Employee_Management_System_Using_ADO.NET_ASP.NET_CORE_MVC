@@ -1,7 +1,9 @@
 ﻿using Employee_Mnagement_System.Models;
 using Microsoft.AspNetCore.Mvc;
 using MySql.Data.MySqlClient;
+using System.ComponentModel;
 using System.Data;
+using System.Text.Json;
 
 namespace Employee_Mnagement_System.Controllers
 {
@@ -42,7 +44,7 @@ namespace Employee_Mnagement_System.Controllers
                         employee.LastName = reader["last_name"].ToString();
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int) reader["emp_age"];
+                        employee.Age = reader["emp_age"].ToString();
                         employee.ProfileImage = reader["profile_image"].ToString();
 
                         employeeList.Add(employee);
@@ -79,7 +81,7 @@ namespace Employee_Mnagement_System.Controllers
                         employee.LastName = reader["last_name"].ToString();
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int)reader["emp_age"];
+                        employee.Age = reader["emp_age"].ToString();
                         employee.ProfileImage = reader["profile_image"].ToString();
 
                         employeeList.Add(employee);
@@ -94,14 +96,18 @@ namespace Employee_Mnagement_System.Controllers
             return View();
         }
 
-        [HttpPost]
-        public IActionResult Create(EmployeeModel employee)
+        [HttpPost, RequestSizeLimit(25 * 1000 * 1024)]
+        public IActionResult Create(string model, IFormFile file)
         {
+
+            EmployeeModel employee = JsonSerializer.Deserialize<EmployeeModel>(model)!;
+
+            employee.imageFile = file;
+            
             employee.ProfileImage = UploadImage(employee.imageFile);
 
             using (MySqlConnection connection = new MySqlConnection(connectionString))
             {
-                // const string Query = "Insert into employee (first_name, last_name, email_id, contact_no, emp_age, profile_image) values (@FirstName, @LastName, @EmailId, @ContactNo, @Age, @ProfileImage);";
 
                 const string StoredProcedure = "InsertEmployee";
 
@@ -122,7 +128,7 @@ namespace Employee_Mnagement_System.Controllers
                 }
             }
 
-            return RedirectToAction("Index");
+            return Json("Index");
         }
 
         public IActionResult populateEditData(int? id)
@@ -156,7 +162,7 @@ namespace Employee_Mnagement_System.Controllers
                         employeeModel.LastName = reader["last_name"].ToString();
                         employeeModel.EmailId = reader["email_id"].ToString();
                         employeeModel.ContactNo = reader["contact_no"].ToString();
-                        employeeModel.Age = (int)reader["emp_age"];
+                        employeeModel.Age = reader["emp_age"].ToString();
                         employeeModel.ProfileImage = reader["profile_image"].ToString();
 
                     }
@@ -383,7 +389,7 @@ namespace Employee_Mnagement_System.Controllers
                         employee.LastName = reader["last_name"].ToString();
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int)reader["emp_age"];
+                        employee.Age = reader["emp_age"].ToString();
 
                         employeeList.Add(employee);
                     }

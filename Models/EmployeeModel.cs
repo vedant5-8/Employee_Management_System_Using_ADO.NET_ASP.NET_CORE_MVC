@@ -15,7 +15,7 @@ namespace Employee_Mnagement_System.Models
 
         public string ContactNo { get; set; }
 
-        public int Age { get; set; }
+        public string Age { get; set; }
 
         public string ProfileImage { get; set; }
 

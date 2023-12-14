@@ -38,7 +38,7 @@ namespace Employee_Mnagement_System.Controllers
                         employee.LastName = reader["last_name"].ToString();
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int)reader["emp_age"];
+                        employee.Age = reader["emp_age"].ToString();
                         employee.ProfileImage = reader["profile_image"].ToString();
 
                         employeeList.Add(employee);
@@ -107,7 +107,7 @@ namespace Employee_Mnagement_System.Controllers
                         employeeModel.LastName = reader["last_name"].ToString();
                         employeeModel.EmailId = reader["email_id"].ToString();
                         employeeModel.ContactNo = reader["contact_no"].ToString();
-                        employeeModel.Age = (int)reader["emp_age"];
+                        employeeModel.Age = reader["emp_age"].ToString();
                         employeeModel.ProfileImage = reader["profile_image"].ToString();
 
                     }
@@ -280,7 +280,7 @@ namespace Employee_Mnagement_System.Controllers
                         employee.LastName = reader["last_name"].ToString();
                         employee.EmailId = reader["email_id"].ToString();
                         employee.ContactNo = reader["contact_no"].ToString();
-                        employee.Age = (int)reader["emp_age"];
+                        employee.Age = reader["emp_age"].ToString();
 
                         employeeList.Add(employee);
                     }

@@ -18,8 +18,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <form id="employeeForm">
-
+            <form>
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-6">
@@ -62,7 +61,6 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     <button type="button" class="btn btn-success" onclick="saveEmployee()">Save changes</button>
                 </div>
-
             </form>
         </div>
     </div>
@@ -112,10 +110,19 @@
                         </div>
                     </div>
 
-                    <div class="row">
+                    @* <div class="row">
                         <div class="col-12">
                             <label for="imageFile_u" class="form-label">Profile Image</label>
                             <input id="imageFile_u" name="imageFile" type="file" class="form-control">
+                        </div>
+                    </div> *@
+
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="imageFile_u" class="form-label">Profile Image</label>
+                            <input id="imageFile_u" name="imageFile" type="file" class="form-control" onchange="previewImage(this)">
+                            <!-- Image preview -->
+                            <img id="imagePreview_u" src="#" alt="Image Preview" style="max-width: 100%; max-height: 150px; margin-top: 10px; display: none;">
                         </div>
                     </div>
 
@@ -147,9 +154,8 @@
                 <th>Actions</th>
             </tr>
         </thead>
-        <tbody>
-            @* Use AJAX for displaying data *@
-        </tbody>
+
+
     </table>
 }
 else
@@ -158,11 +164,17 @@ else
 }
 
 <script>
+
+
     $(document).ready(function () {
         debugger;
+        get();
+        
+    });
 
+    function get() {
         $.ajax({
-            type: "Get",
+            type: "GET",
             url: "/EmployeeManagement/EmployeesList",
             success: function (data) {
                 $('#emp-table').DataTable({
@@ -191,44 +203,6 @@ else
                 });
             }
         });
-    });
-
-    //
-
-    function saveAndUpdateEmployee() {
-        var employeeData = {
-            Id: $('#empId_u').val(), // If the ID is present, it's an update; otherwise, it's a new employee
-            FirstName: $('#firstName_u').val(),
-            LastName: $('#lastName_u').val(),
-            EmailId: $('#emailId_u').val(),
-            ContactNo: $('#contactNo_u').val(),
-            Age: $('#age_u').val(),
-            ImageFile: $('#imageFile_u')[0].files[0]
-        };
-
-        var formData = new FormData();
-        for (var key in employeeData) {
-            formData.append(key, employeeData[key]);
-        }
-
-        var url = employeeData.Id ? "/EmployeeManagement/Edit/" : "/EmployeeManagement/Create";
-
-        $.ajax({
-            type: "POST",
-            url: url,
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function (data) {
-                console.log("Employee saved successfully!");
-                $('#updateEmployeeModal').modal('hide');
-                $('#saveEmployeeModal').modal('hide');
-                location.reload();
-            },
-            error: function (error) {
-                console.error("Error saving/updating employee:", error);
-            }
-        });
     }
 
     // Function for save anew employee
@@ -239,13 +213,11 @@ else
             EmailId: $('#emailId').val(),
             ContactNo: $('#contactNo').val(),
             Age: $('#age').val(),
-            ImageFile: $('#imageFile')[0].files[0]  // Assuming imageFile is a file input
-        };
+        }
 
         var formData = new FormData();
-        for (var key in employeeData) {
-            formData.append(key, employeeData[key]);
-        }
+        formData.append("model", JSON.stringify(employeeData));
+        formData.append("file", $("#imageFile")[0].files[0]);
 
         $.ajax({
             type: "POST",
@@ -253,6 +225,7 @@ else
             data: formData,
             contentType: false,
             processData: false,
+            Cache: false,
             success: function (data) {
                 console.log("Employee saved successfully!");
                 $('#saveEmployeeModal').modal('hide');
@@ -264,8 +237,24 @@ else
         });
     }
 
-    // Function for update employee
+    function previewImage(input) {
+        var file = input.files[0];
 
+        if (file) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#imagePreview_u').attr('src', e.target.result).show();
+            };
+
+            reader.readAsDataURL(file);
+        } else {
+            // Clear the image preview if no file is selected
+            $('#imagePreview_u').attr('src', '').hide();
+        }
+    }
+
+    // Function for update employee
     // Function to populate form fields by ID
     function populateUpdateModal(employeeId) {
         debugger;
@@ -282,6 +271,12 @@ else
                 $('#contactNo_u').val(employee.contactNo);
                 $('#age_u').val(employee.age);
 
+                var imagePreview = employee.profileImage
+                    ? '/images/' + employee.profileImage
+                    : 'Upload Image';
+                $('#imagePreview_u').attr('src', imagePreview).show();
+
+
                 // $('#imageFile').val(employee.profileImage);
             },
             error: function (error) {
@@ -291,6 +286,52 @@ else
 
     }
 
+    // Function for update employee
+    function updateEmployee() {
+        var employeeData = {
+            Id: $('#empId_u').val(),
+            FirstName: $('#firstName_u').val(),
+            LastName: $('#lastName_u').val(),
+            EmailId: $('#emailId_u').val(),
+            ContactNo: $('#contactNo_u').val(),
+            Age: $('#age_u').val(),
+        };
+
+        var formData = new FormData();
+        for (var key in employeeData) {
+            formData.append(key, employeeData[key]);
+        }
+
+        // Add updated image file to formData
+        var updatedImageFile = $('#imageFile_u')[0].files[0];
+        formData.append("imageFile", updatedImageFile);
+
+        $.ajax({
+            type: "POST",
+            url: "/EmployeeManagement/Edit",
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (data) {
+                // Assuming the controller returns a JSON result, check for success or error
+                if (data === "Index") {
+                    alert("Employee updated successfully!");
+                    $('#updateEmployeeModal').modal('hide');
+                    location.reload();
+                } else {
+                    // Handle errors or show appropriate messages
+                    console.error("Error updating employee:", data);
+                    alert("Failed to update employee. Please check the console for details.");
+                }
+            },
+            error: function (error) {
+                console.error("Error updating employee:", error);
+                alert("Failed to update employee. Please check the console for details.");
+            },
+        });
+    }
+
+    @*
     function updateEmployee() {
         // Collect form field values into an object
         var employeeData = {
@@ -300,17 +341,21 @@ else
             EmailId: $('#emailId_u').val(),
             ContactNo: $('#contactNo_u').val(),
             Age: $('#age_u').val(),
-
         };
 
         debugger;
 
+        var formData = new FormData();
+        for (var key in employeeData) {
+            formData.append(key, employeeData[key]);
+        }
+
         $.ajax({
             type: "POST",
-            url: "/EmployeeManagement/Edit/",
-            data: JSON.stringify(employeeData),
-            contentType: "application/json",
-            dataType: "json",
+            url: "/EmployeeManagement/Edit",
+            data: formData,
+            contentType: false,
+            processData: false,
             success: function (data) {
                 alert("Employee updated successfully!");
                 $('#updateEmployeeModal').modal('hide');
@@ -321,6 +366,7 @@ else
             },
         });
     }
+    *@
 
     // Function for delete existing new employee
     function deleteEmployee(employeeId) {
