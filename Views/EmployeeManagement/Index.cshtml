@@ -11,7 +11,7 @@
 
 <!-- Modal for Save Data -->
 <div class="modal fade" id="employeeModal" tabindex="-1" aria-labelledby="employeeModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="employeeModalLabel">Add New Employee</h5>
@@ -22,46 +22,76 @@
                 <div class="modal-body">
 
                     <div class="row">
-                        <div class="col-12">
-                            <input id="empId" name="Id" type="number" class="form-control" autocomplete="off" hidden>
-                        </div>
-                    </div>
+                        <div class="col-5">
+                            <div class="row">
+                                <div class="col-12">
+                                    <label for="imageFile" class="form-label">Profile Image</label>
 
-                    <div class="row">
-                        <div class="col-6">
-                            <label for="firstName" class="form-label">First Name</label>
-                            <input id="firstName" name="FirstName" type="text" class="form-control" autocomplete="off">
-                        </div>
-                        <div class="col-6">
-                            <label for="lastName" class="form-label">Last Name</label>
-                            <input id="lastName" name="LastName" type="text" class="form-control" autocomplete="off">
-                        </div>
-                    </div>
+                                    <div class="mx-auto" style="height: 225px; width: 225px;">
+                                        <!-- Image preview -->
+                                        <img id="imagePreview" src="images/profile.png" alt="Image Preview" style="height:100%; border-radius: 50%;">
+                                    </div>
 
-                    <div class="row">
-                        <div class="col-12">
-                            <label for="emailId" class="form-label">Email</label>
-                            <input id="emailId" name="EmailId" type="text" class="form-control" autocomplete="off">
-                        </div>
-                    </div>
+                                    <div class="mt-2">
+                                        <!-- Add new Profile Image -->
+                                        <button id="add-profile" type="button" class="btn btn-outline-success w-100" onclick="AddProfile()">Add Profile Image</button>
+                                        <input id="imageFile" name="imageFile" type="file" class="form-control visually-hidden" onchange="previewImage(this)">
 
-                    <div class="row">
-                        <div class="col-8">
-                            <label for="contactNo" class="form-label">Contact No.</label>
-                            <input id="contactNo" name="ContactNo" type="text" class="form-control" autocomplete="off">
+                                        <div class="row">
+                                            <div class="col-6">
+                                                <!-- Change profile image -->
+                                                <button type="button" id="change-profile" class="btn btn-outline-warning w-100" onclick="ChangeProfile()" style="display: none;">Change</button>
+                                            </div>
+                                            <div class="col-6">
+                                                <!-- Remove Profile Image -->
+                                                <button type="button" id="remove-profile" class="btn btn-outline-danger w-100" onclick="RemoveProfile()" style="display: none;">Remove</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-4">
-                            <label for="age" class="form-label">Age</label>
-                            <input id="age" name="Age" type="text" class="form-control" autocomplete="off">
-                        </div>
-                    </div>
 
-                    <div class="row">
-                        <div class="col-12">
-                            <label for="imageFile" class="form-label">Profile Image</label>
-                            <input id="imageFile" name="imageFile" type="file" class="form-control" onchange="previewImage(this)">
-                            <!-- Image preview -->
-                            <img id="imagePreview" src="#" alt="Image Preview" style="max-width: 100%; max-height: 150px; margin-top: 10px; display: none;">
+                        <div class="col-7">
+
+                            <div class="row">
+                                <div class="col-12">
+                                    <input id="empId" name="Id" type="number" class="form-control" autocomplete="off" hidden>
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input id="firstName" name="FirstName" type="text" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input id="lastName" name="LastName" type="text" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <label for="emailId" class="form-label">Email</label>
+                                    <input id="emailId" name="EmailId" type="text" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-8">
+                                    <label for="contactNo" class="form-label">Contact No.</label>
+                                    <input id="contactNo" name="ContactNo" type="text" class="form-control" autocomplete="off">
+                                </div>
+                                <div class="col-4">
+                                    <label for="age" class="form-label">Age</label>
+                                    <input id="age" name="Age" type="text" class="form-control" autocomplete="off">
+                                </div>
+                            </div>
+
                         </div>
                     </div>
 
@@ -79,11 +109,11 @@
 
 @if (Model.Any())
 {
-    <table class="table" id="emp-table">
+    <table class="table table-responsive hover order-column " id="emp-table" style="width:100%">
         <thead>
             <tr>
+                <th>Id</th>
                 <th>Profile</th>
-                <th>Employee Id</th>
                 <th>First Name</th>
                 <th>Last Name</th>
                 <th>Contact No</th>
@@ -93,7 +123,6 @@
             </tr>
         </thead>
 
-
     </table>
 }
 else
@@ -101,6 +130,7 @@ else
     <h2>No Data Available</h2>
 }
 
+@* JavaScript and Ajax *@
 <script>
 
     $(document).ready(function () {
@@ -108,6 +138,7 @@ else
         get();
     });
 
+    @* display table body *@
     function get() {
 
         // Destroy the existing DataTable
@@ -122,13 +153,13 @@ else
                 $('#emp-table').DataTable({
                     data: data,
                     columns: [
+                        { data: 'id' },
                         {
                             data: 'profileImage',
                             render: function (data, type, row) {
                                 return '<img src="/images/' + data + '" width="25" height="25" alt="Image" />';
                             }
                         },
-                        { data: 'id' },
                         { data: 'firstName' },
                         { data: 'lastName' },
                         { data: 'emailId' },
@@ -171,15 +202,7 @@ else
             success: function (data) {
                 console.log("Employee saved successfully!");
 
-                // Clear the form fields
-                $('empId').val('');
-                $('#firstName').val('');
-                $('#lastName').val('');
-                $('#emailId').val('');
-                $('#contactNo').val('');
-                $('#age').val('');
-                $('#imageFile').val('');
-                $('#imagePreview').attr('src', '').hide();
+                clearForm();
 
                 $('#employeeModal').modal('hide');
                 
@@ -191,23 +214,6 @@ else
                 console.error("Error saving employee:", error);
             }
         });
-    }
-
-    function previewImage(input) {
-        var file = input.files[0];
-
-        if (file) {
-            var reader = new FileReader();
-
-            reader.onload = function (e) {
-                $('#imagePreview').attr('src', e.target.result).show();
-            };
-
-            reader.readAsDataURL(file);
-        } else {
-            // Clear the image preview if no file is selected
-            $('#imagePreview').attr('src', '').hide();
-        }
     }
 
     // Function for update employee
@@ -231,9 +237,7 @@ else
                     ? '/images/' + employee.profileImage
                     : 'Upload Image';
                 $('#imagePreview').attr('src', imagePreview).show();
-
-
-                // $('#imageFile').val(employee.profileImage);
+                
             },
             error: function (error) {
                 console.error("Error fetching employee details:", error);
@@ -294,6 +298,25 @@ else
         });
     }
 
+    // Function for delete existing new employee
+    function deleteEmployee(employeeId) {
+        if (confirm("Are you sure you want to delete this employee?")) {
+            $.ajax({
+                type: "POST", // or "GET" depending on your server-side implementation
+                url: "/EmployeeManagement/Delete/" + employeeId,
+                success: function (data) {
+                    alert("Employee deleted successfully!");
+
+                    get();
+                },
+                error: function (error) {
+                    console.error("Error deleting employee:", error);
+                }
+            });
+        }
+    }
+
+    // Function to Reset all input fields in the form
     function clearForm() {
         // Clear form fields here
         $('#empId').val('');
@@ -303,12 +326,12 @@ else
         $('#contactNo').val('');
         $('#age').val('');
         $('#imageFile').val('');
-        $('#imagePreview').attr('src', '').hide();
+        $('#imagePreview').attr('src', 'images/profile.png').hide();
+        showButtons(false);
     }
 
     // Function to open the employee modal based on action ('save' or 'edit')
     function openEmployeeModal(action, employeeId) {
-        console.log('Action:', action);
 
         if (action === 'save') {
 
@@ -317,6 +340,10 @@ else
 
             // Clear form fields when opening for 'save' action
             clearForm();
+
+            // Set default image for 'save' action
+            $('#imagePreview').attr('src', 'images/profile.png').show();
+            showButtons(false);
 
             // Set onclick event for the Save button
             $('#saveEmployeeButton')
@@ -331,6 +358,9 @@ else
             // Populate the update modal with existing employee data
             populateUpdateModal(employeeId);
 
+            // Set the image source and show/hide buttons
+            showButtons(true);
+
             // Set onclick event for the Save button
             $('#saveEmployeeButton')
                 .attr('onclick', 'updateEmployee()')
@@ -342,22 +372,52 @@ else
         $('#employeeModal').modal('show');
     }
 
-    // Function for delete existing new employee
-    function deleteEmployee(employeeId) {
-        if (confirm("Are you sure you want to delete this employee?")) {
-            $.ajax({
-                type: "POST", // or "GET" depending on your server-side implementation
-                url: "/EmployeeManagement/Delete/" + employeeId,
-                success: function (data) {
-                    alert("Employee deleted successfully!");
-                    
-                    get();
-                },
-                error: function (error) {
-                    console.error("Error deleting employee:", error);
-                }
-            });
+    // Function to preview image in modal
+    function previewImage(input) {
+        var file = input.files[0];
+
+        if (file) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#imagePreview').attr('src', e.target.result).show();
+                showButtons(true);
+            };
+
+            reader.readAsDataURL(file);
         }
+    }
+
+    @* Function to add new the profile image *@
+    function AddProfile() {
+        $('#imageFile').click();
+    }
+
+    @* Function to change the profile image *@
+    function ChangeProfile() {
+        $('#imageFile').click();
+    }
+
+    @* Function to remove the profile image and reset form fields *@
+    function RemoveProfile() {
+
+        @* Reset profile image *@
+        $('#imagePreview').attr('src', 'images/profile.png');
+
+        @* clear image file input field *@
+        $('imageFile').val('');
+
+        @* hide corresponding buttons *@
+        showButtons(false);
+    }
+
+    @* Function to show/hide profile image action buttons based on whether an image is present *@
+    function showButtons(hasImage) {
+
+        @* Show/hide profile image action buttons *@
+        $('#add-profile').css('display', hasImage ? 'none' : 'block');
+        $('#change-profile').css('display', hasImage ? 'block' : 'none');
+        $('#remove-profile').css('display', hasImage ? 'block' : 'none');
     }
 
 </script>

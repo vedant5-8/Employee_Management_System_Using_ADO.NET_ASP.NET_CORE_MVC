@@ -1,11 +1,9 @@
-html {
-  font-size: 14px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
 
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+* {
+    margin: 0px;
+    padding: 0px;
+    font-family: 'Poppins', sans-serif;
 }
 
 html {
@@ -16,3 +14,15 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
