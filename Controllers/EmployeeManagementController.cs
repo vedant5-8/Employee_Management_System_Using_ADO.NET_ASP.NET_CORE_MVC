@@ -258,17 +258,64 @@ namespace Employee_Mnagement_System.Controllers
         */
 
         [HttpPost]
-        public IActionResult Edit(string model, IFormFile file)
+        public IActionResult Edit(int id, string model, IFormFile file)
         {
-
             EmployeeModel employee = JsonSerializer.Deserialize<EmployeeModel>(model)!;
+
+            employee.Id = id;
 
             employee.imageFile = file;
 
-            employee.ProfileImage = UploadImage(employee.imageFile);
+            // employee.ProfileImage = UploadImage(employee.imageFile);
 
             try
             {
+                // Get existing profile image from the database
+                string existingImage = null;
+
+                using (MySqlConnection connection = new MySqlConnection(connectionString))
+                {
+                    string StoredProcedure = "GetProfileImageById";
+
+                    using (MySqlCommand command = new MySqlCommand(StoredProcedure, connection))
+                    {
+                        command.CommandType = CommandType.StoredProcedure;
+                        command.Parameters.AddWithValue("@Id", employee.Id);
+
+                        connection.Open();
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                existingImage = reader["profile_image"].ToString();
+                            }
+                        }
+                    }
+                }
+
+                // If a new image file is uploaded, update the profile image
+                if (employee.imageFile != null)
+                {
+                    // Delete the old image file if it exists
+                    if (!string.IsNullOrEmpty(existingImage))
+                    {
+                        string oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", existingImage);
+
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    employee.ProfileImage = UploadImage(employee.imageFile);
+                }
+                else
+                {
+                    // If no new image is provided, use the existing image
+                    employee.ProfileImage = existingImage;
+                }
+
                 using (MySqlConnection connection = new MySqlConnection(connectionString))
                 {
                     string StoredProcedure = "UpdateEmployee";
